@@ -1,0 +1,34 @@
+# build_vector_db.py
+
+import faiss
+import pickle
+import numpy as np
+from typing import List
+from sentence_transformers import SentenceTransformer
+
+# Load embedding model (replace with Gemini embedding if available)
+model = SentenceTransformer('all-MiniLM-L6-v2')  # or use Gemini if accessible
+
+# Sample documents (replace with real documents or load from a folder)
+documents = [
+    "ISO/IEC 17025 compliance requires routine calibration of inspection equipment.",
+    "Defect category A indicates a critical fault requiring line halt.",
+    "Quality Control manual section 5.3 outlines visual inspection thresholds.",
+    "SOP-12 mandates a double-check process for ambiguous defect patterns.",
+    "Historical defect X123 usually links to component misalignment in Stage 2."
+]
+
+# Generate embeddings
+embeddings = model.encode(documents).astype("float32")
+
+# Build FAISS index
+dimension = embeddings.shape[1]
+index = faiss.IndexFlatL2(dimension)
+index.add(embeddings)
+
+# Save FAISS index and corresponding documents
+faiss.write_index(index, "quality_inspection_index.faiss")
+with open("quality_docs.pkl", "wb") as f:
+    pickle.dump(documents, f)
+
+print("FAISS index and document store created.")
